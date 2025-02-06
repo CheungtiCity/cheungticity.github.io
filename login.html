@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>长堤控制系统 | 次元建造中枢</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Exo+2:wght@300;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --hologram-blue: #00f3ff;
+            --cyber-purple: #bc00ff;
+            --neon-border: 1px solid rgba(0, 243, 255, 0.3);
+            --matrix-bg: linear-gradient(25deg, 
+                rgba(0, 15, 31, 0.95) 20%,
+                rgba(16, 0, 31, 0.95) 80%);
+        }
+
+        /* 全息验证系统 */
+        .auth-system {
+            position: relative;
+            background: var(--matrix-bg);
+            border: var(--neon-border);
+            box-shadow: 0 0 50px rgba(0,243,255,0.1);
+            padding: 3rem;
+            border-radius: 15px;
+            backdrop-filter: blur(15px);
+        }
+
+        .input-field {
+            position: relative;
+            margin: 2rem 0;
+        }
+
+        .input-field input {
+            width: 100%;
+            padding: 1.2rem;
+            background: rgba(0, 15, 31, 0.5);
+            border: none;
+            border-bottom: 2px solid var(--hologram-blue);
+            color: white;
+            font-family: 'Exo 2', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .input-field input:focus {
+            outline: none;
+            border-bottom-color: var(--cyber-purple);
+            box-shadow: 0 10px 20px -10px rgba(188,0,255,0.3);
+        }
+
+        .validation-feedback {
+            position: absolute;
+            right: -30px;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .input-field.valid .validation-feedback {
+            right: 10px;
+            opacity: 1;
+            color: var(--hologram-blue);
+        }
+
+        .input-field.invalid .validation-feedback {
+            right: 10px;
+            opacity: 1;
+            color: #ff0040;
+        }
+
+        /* 增强现实界面 */
+        .ar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        .grid-line {
+            position: absolute;
+            background: rgba(0,243,255,0.05);
+        }
+
+        /* 生物识别验证 */
+        .biometric-scan {
+            position: relative;
+            height: 200px;
+            margin: 2rem 0;
+            border: 2px solid var(--hologram-blue);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .scan-beam {
+            position: absolute;
+            height: 3px;
+            width: 100%;
+            background: linear-gradient(90deg,
+                transparent,
+                var(--hologram-blue),
+                transparent);
+            animation: scan 3s infinite;
+        }
+
+        @keyframes scan {
+            0% { top: 0; opacity: 0; }
+            50% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <!-- 增强现实网格 -->
+    <div class="ar-overlay">
+        <div class="grid-line" style="top: 20%; height: 1px; width: 100%;"></div>
+        <div class="grid-line" style="left: 30%; width: 1px; height: 100%;"></div>
+    </div>
+
+    <!-- 高级验证系统 -->
+    <section class="section">
+        <div class="auth-system">
+            <h2 class="cyber-title">访问认证协议 v3.5</h2>
+            
+            <form id="authForm" novalidate>
+                <div class="input-field">
+                    <input type="text" 
+                           id="userToken" 
+                           placeholder="量子密钥" 
+                           pattern="[A-Z0-9]{8}-[A-Z0-9]{4}-[A-Z0-9]{4}"
+                           required>
+                    <i class="fas fa-qrcode validation-feedback"></i>
+                </div>
+
+                <div class="input-field">
+                    <input type="password" 
+                           id="chronoKey" 
+                           placeholder="时序密码" 
+                           pattern="^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{10,}$"
+                           required>
+                    <i class="fas fa-unlock validation-feedback"></i>
+                </div>
+
+                <div class="biometric-scan">
+                    <div class="scan-beam"></div>
+                </div>
+
+                <button type="submit" class="cyber-button">
+                    <span class="glow-text">确认识别</span>
+                    <div class="button-border"></div>
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <script>
+        // 实时输入验证
+        const inputs = document.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('input', () => {
+                const parent = input.parentElement;
+                if (input.checkValidity()) {
+                    parent.classList.add('valid');
+                    parent.classList.remove('invalid');
+                } else {
+                    parent.classList.add('invalid');
+                    parent.classList.remove('valid');
+                }
+            });
+        });
+
+        // 提交验证
+        document.getElementById('authForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const isValid = Array.from(inputs).every(input => input.checkValidity());
+            
+            if (isValid) {
+                // 生物识别动画
+                document.querySelector('.biometric-scan').style.borderColor = '#00ff9d';
+                document.querySelector('.scan-beam').style.background = 
+                    'linear-gradient(90deg, transparent, #00ff9d, transparent)';
+                
+                setTimeout(() => {
+                    alert('量子隧穿认证成功\n欢迎进入城建核心');
+                    window.location.href = '/dashboard';
+                }, 2000);
+            } else {
+                // 错误状态动画
+                document.querySelector('.biometric-scan').style.borderColor = '#ff0040';
+                document.querySelector('.scan-beam').style.background = 
+                    'linear-gradient(90deg, transparent, #ff0040, transparent)';
+                
+                inputs.forEach(input => {
+                    if (!input.checkValidity()) {
+                        input.parentElement.classList.add('invalid');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
