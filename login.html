@@ -1,6 +1,29 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
+    <script>
+        // Firebase初始化调试版
+        console.log('[DEBUG] 开始初始化Firebase');
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyDP3SY__81TQwqJMB0gNmf6yMx1nyMXiaA",
+            authDomain: "cheungticity.firebaseapp.com",
+            projectId: "cheungticity",
+            storageBucket: "cheungticity.firebasestorage.app",
+            messagingSenderId: "1030169122427",
+            appId: "1:1030169122427:web:41f88f835ba43a0c19b4de"
+        };
+    
+        try {
+            const app = firebase.initializeApp(firebaseConfig);
+            console.log('[SUCCESS] Firebase应用实例:', app);
+            console.log('Auth模块:', firebase.auth());
+        } catch (error) {
+            console.error('[ERROR] 初始化失败:', error);
+            alert('Firebase初始化错误: ' + error.message);
+        }
+    </script>
+    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>長堤丨MCMTR 城建計劃</title>
@@ -130,6 +153,7 @@
     </div>
 
     <script>
+        
         // 初始化 Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyDP3SY__81TQwqJMB0gNmf6yMx1nyMXiaA",
