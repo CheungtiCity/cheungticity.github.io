@@ -5,7 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>長堤丨MCMTR 城建計劃</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;500&display=swap" rel="stylesheet">
+    <!-- 新增 Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
     <style>
+        /* 原有CSS保持不變 */
         :root {
             --silver-primary: #e0e0e0;
             --silver-secondary: #f8f9fa;
@@ -126,7 +130,21 @@
     </div>
 
     <script>
-        function validateForm() {
+        // 初始化 Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDP3SY__81TQwqJMB0gNmf6yMx1nyMXiaA",
+            authDomain: "cheungticity.firebaseapp.com",
+            projectId: "cheungticity",
+            storageBucket: "cheungticity.firebasestorage.app",
+            messagingSenderId: "1030169122427",
+            appId: "1:1030169122427:web:41f88f835ba43a0c19b4de",
+            measurementId: "G-JWTDBWJH58"
+        };
+        
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth(app);
+
+        async function validateForm() {
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value;
             let isValid = true;
@@ -143,11 +161,26 @@
                 isValid = false;
             }
 
-            if (isValid) {
-                // 在此處添加實際登入邏輯
-                alert('驗證成功，正在登入...');
+            if (!isValid) return false;
+
+            try {
+                // 自動補全郵箱域名
+                const email = `${username}@cheungticity.com`;
+                await auth.signInWithEmailAndPassword(email, password);
+                window.location.href = 'https://cheungticity.github.io/dashboard';
+            } catch (error) {
+                handleAuthError(error);
             }
-            return false; // 防止表單實際提交
+            return false;
+        }
+
+        function handleAuthError(error) {
+            const errorMessages = {
+                'auth/user-not-found': '用戶不存在',
+                'auth/wrong-password': '密碼錯誤',
+                'auth/too-many-requests': '嘗試次數過多，請稍後再試'
+            };
+            showError('passwordError', errorMessages[error.code] || '登入失敗');
         }
 
         function showError(elementId, message) {
