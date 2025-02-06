@@ -1,206 +1,167 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>长堤控制系统 | 次元建造中枢</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Exo+2:wght@300;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>長堤丨MCMTR 城建計劃</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --hologram-blue: #00f3ff;
-            --cyber-purple: #bc00ff;
-            --neon-border: 1px solid rgba(0, 243, 255, 0.3);
-            --matrix-bg: linear-gradient(25deg, 
-                rgba(0, 15, 31, 0.95) 20%,
-                rgba(16, 0, 31, 0.95) 80%);
+            --silver-primary: #e0e0e0;
+            --silver-secondary: #f8f9fa;
+            --metal-accent: #6c757d;
         }
 
-        /* 全息验证系统 */
-        .auth-system {
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--silver-secondary) 0%, var(--silver-primary) 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(2px);
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            width: 400px;
+            transform: translateZ(0);
+            transition: transform 0.3s ease;
+        }
+
+        .login-container:hover {
+            transform: translateY(-2px) translateZ(0);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2.2rem;
+            color: var(--metal-accent);
+            letter-spacing: 2px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .input-group {
+            margin-bottom: 1.8rem;
             position: relative;
-            background: var(--matrix-bg);
-            border: var(--neon-border);
-            box-shadow: 0 0 50px rgba(0,243,255,0.1);
-            padding: 3rem;
-            border-radius: 15px;
-            backdrop-filter: blur(15px);
         }
 
-        .input-field {
-            position: relative;
-            margin: 2rem 0;
-        }
-
-        .input-field input {
+        input {
             width: 100%;
-            padding: 1.2rem;
-            background: rgba(0, 15, 31, 0.5);
-            border: none;
-            border-bottom: 2px solid var(--hologram-blue);
-            color: white;
-            font-family: 'Exo 2', sans-serif;
-            transition: all 0.3s ease;
+            padding: 12px 20px;
+            border: 1px solid var(--silver-primary);
+            border-radius: 6px;
+            background: var(--silver-secondary);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 1rem;
         }
 
-        .input-field input:focus {
+        input:focus {
             outline: none;
-            border-bottom-color: var(--cyber-purple);
-            box-shadow: 0 10px 20px -10px rgba(188,0,255,0.3);
+            border-color: var(--metal-accent);
+            box-shadow: 0 0 0 2px rgba(108, 117, 125, 0.2);
         }
 
-        .validation-feedback {
-            position: absolute;
-            right: -30px;
-            top: 50%;
-            transform: translateY(-50%);
-            opacity: 0;
+        button {
+            width: 100%;
+            padding: 12px;
+            background: var(--metal-accent);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
             transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
-        .input-field.valid .validation-feedback {
-            right: 10px;
-            opacity: 1;
-            color: var(--hologram-blue);
+        button:hover {
+            background: #5a6268;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
-        .input-field.invalid .validation-feedback {
-            right: 10px;
-            opacity: 1;
-            color: #ff0040;
-        }
-
-        /* 增强现实界面 */
-        .ar-overlay {
-            position: fixed;
-            top: 0;
+        .error-message {
+            color: #dc3545;
+            font-size: 0.85rem;
+            position: absolute;
+            bottom: -20px;
             left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
-        .grid-line {
-            position: absolute;
-            background: rgba(0,243,255,0.05);
-        }
-
-        /* 生物识别验证 */
-        .biometric-scan {
-            position: relative;
-            height: 200px;
-            margin: 2rem 0;
-            border: 2px solid var(--hologram-blue);
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .scan-beam {
-            position: absolute;
-            height: 3px;
-            width: 100%;
-            background: linear-gradient(90deg,
-                transparent,
-                var(--hologram-blue),
-                transparent);
-            animation: scan 3s infinite;
-        }
-
-        @keyframes scan {
-            0% { top: 0; opacity: 0; }
-            50% { opacity: 1; }
-            100% { top: 100%; opacity: 0; }
+        @media (max-width: 480px) {
+            .login-container {
+                width: 90%;
+                padding: 1.8rem;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- 增强现实网格 -->
-    <div class="ar-overlay">
-        <div class="grid-line" style="top: 20%; height: 1px; width: 100%;"></div>
-        <div class="grid-line" style="left: 30%; width: 1px; height: 100%;"></div>
+    <div class="login-container">
+        <div class="logo">長堤丨MCMTR</div>
+        <form id="loginForm" onsubmit="return validateForm()">
+            <div class="input-group">
+                <input type="text" id="username" placeholder="用戶名稱" required>
+                <span class="error-message" id="usernameError"></span>
+            </div>
+            <div class="input-group">
+                <input type="password" id="password" placeholder="密碼" required>
+                <span class="error-message" id="passwordError"></span>
+            </div>
+            <button type="submit">登入系統</button>
+        </form>
     </div>
 
-    <!-- 高级验证系统 -->
-    <section class="section">
-        <div class="auth-system">
-            <h2 class="cyber-title">访问认证协议 v3.5</h2>
-            
-            <form id="authForm" novalidate>
-                <div class="input-field">
-                    <input type="text" 
-                           id="userToken" 
-                           placeholder="量子密钥" 
-                           pattern="[A-Z0-9]{8}-[A-Z0-9]{4}-[A-Z0-9]{4}"
-                           required>
-                    <i class="fas fa-qrcode validation-feedback"></i>
-                </div>
-
-                <div class="input-field">
-                    <input type="password" 
-                           id="chronoKey" 
-                           placeholder="时序密码" 
-                           pattern="^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{10,}$"
-                           required>
-                    <i class="fas fa-unlock validation-feedback"></i>
-                </div>
-
-                <div class="biometric-scan">
-                    <div class="scan-beam"></div>
-                </div>
-
-                <button type="submit" class="cyber-button">
-                    <span class="glow-text">确认识别</span>
-                    <div class="button-border"></div>
-                </button>
-            </form>
-        </div>
-    </section>
-
     <script>
-        // 实时输入验证
-        const inputs = document.querySelectorAll('input');
-        inputs.forEach(input => {
-            input.addEventListener('input', () => {
-                const parent = input.parentElement;
-                if (input.checkValidity()) {
-                    parent.classList.add('valid');
-                    parent.classList.remove('invalid');
-                } else {
-                    parent.classList.add('invalid');
-                    parent.classList.remove('valid');
-                }
-            });
-        });
+        function validateForm() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            let isValid = true;
 
-        // 提交验证
-        document.getElementById('authForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            
-            const isValid = Array.from(inputs).every(input => input.checkValidity());
-            
-            if (isValid) {
-                // 生物识别动画
-                document.querySelector('.biometric-scan').style.borderColor = '#00ff9d';
-                document.querySelector('.scan-beam').style.background = 
-                    'linear-gradient(90deg, transparent, #00ff9d, transparent)';
-                
-                setTimeout(() => {
-                    alert('量子隧穿认证成功\n欢迎进入城建核心');
-                    window.location.href = '/dashboard';
-                }, 2000);
-            } else {
-                // 错误状态动画
-                document.querySelector('.biometric-scan').style.borderColor = '#ff0040';
-                document.querySelector('.scan-beam').style.background = 
-                    'linear-gradient(90deg, transparent, #ff0040, transparent)';
-                
-                inputs.forEach(input => {
-                    if (!input.checkValidity()) {
-                        input.parentElement.classList.add('invalid');
-                    }
-                });
+            // 用戶名驗證
+            if (username.length < 4) {
+                showError('usernameError', '用戶名需至少4個字符');
+                isValid = false;
             }
+
+            // 密碼驗證
+            if (password.length < 6) {
+                showError('passwordError', '密碼需至少6個字符');
+                isValid = false;
+            }
+
+            if (isValid) {
+                // 在此處添加實際登入邏輯
+                alert('驗證成功，正在登入...');
+            }
+            return false; // 防止表單實際提交
+        }
+
+        function showError(elementId, message) {
+            const errorElement = document.getElementById(elementId);
+            errorElement.textContent = message;
+            errorElement.style.opacity = '1';
+            setTimeout(() => errorElement.style.opacity = '0', 3000);
+        }
+
+        // 動態輸入驗證
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', () => {
+                document.getElementById(`${input.id}Error`).style.opacity = '0';
+            });
         });
     </script>
 </body>
