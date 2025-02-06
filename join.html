@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>加入計劃丨長堤城建</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;500;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/ionicons@5.5.2/dist/css/ionicons.min.css" rel="stylesheet">
+    
+    <style>
+        /* 继承主站样式变量 */
+        :root {
+            --platinum: #E5E4E2;
+            --silver: #C0C0C0;
+            --metal-accent: #6C757D;
+            --obsidian: #0A0A0A;
+            --success: #28a745;
+            --error: #dc3545;
+        }
+
+        /* 共用样式 */
+        .nav-bar, .logo, .nav-link {
+            /* 与index.html保持一致 */
+        }
+
+        /* 加入页面专属样式 */
+        .join-container {
+            max-width: 800px;
+            margin: 8rem auto 4rem;
+            padding: 2.5rem;
+            background: rgba(255, 255, 255, 0.92);
+            border-radius: 12px;
+            box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+        }
+
+        .form-step {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .form-step.active {
+            display: block;
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .form-title {
+            font-size: 2.2rem;
+            color: var(--obsidian);
+            margin-bottom: 1rem;
+        }
+
+        .form-subtitle {
+            color: var(--metal-accent);
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .input-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--metal-accent);
+            font-weight: 500;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 0.8rem 1.2rem;
+            border: 1px solid var(--silver);
+            border-radius: 6px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .input-field:focus {
+            border-color: var(--metal-accent);
+            box-shadow: 0 0 0 2px rgba(108,117,125,0.2);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 0.8rem 1.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .btn-primary {
+            background: var(--metal-accent);
+            color: white;
+            border: none;
+        }
+
+        .btn-secondary {
+            background: none;
+            border: 1px solid var(--metal-accent);
+            color: var(--metal-accent);
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: rgba(108,117,125,0.1);
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--metal-accent);
+            transition: width 0.4s ease;
+        }
+
+        /* 動畫效果 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .join-container {
+                margin: 6rem 1rem 2rem;
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏代码（需与index.html完全一致） -->
+<nav class="nav-bar">
+    <div class="nav-content">
+        <div class="logo">長堤丨MCMTR</div>
+        <div class="nav-links">
+            <a href="/index.html" class="nav-link">首頁</a>
+            <a href="#about" class="nav-link">計劃簡介</a>
+            <a href="#stats" class="nav-link">實時數據</a>
+            <a href="/login.html" class="nav-link">登入系統</a>
+        </div>
+    </div>
+</nav>
+
+<style>
+/* 完整导航栏样式（与主站同步） */
+.nav-bar {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 1.2rem 5%;
+    backdrop-filter: saturate(180%) blur(20px);
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+
+.nav-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-size: 1.8rem;
+    color: var(--obsidian);
+    letter-spacing: 1.2px;
+    font-weight: 700;
+    font-family: 'Noto Sans TC', sans-serif;
+}
+
+.nav-links {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+}
+
+.nav-link {
+    color: var(--metal-accent);
+    text-decoration: none;
+    font-weight: 500;
+    position: relative;
+    padding: 0.5rem 0;
+    transition: color 0.3s ease;
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--metal-accent);
+    transition: width 0.3s ease;
+}
+
+.nav-link:hover::after {
+    width: 100%;
+}
+
+/* 移动端响应式 */
+@media (max-width: 768px) {
+    .nav-links {
+        display: none;
+    }
+    
+    .nav-bar {
+        padding: 1rem 5%;
+    }
+    
+    .logo {
+        font-size: 1.5rem;
+    }
+}
+</style>
+
+
+    <!-- 加入表单容器 -->
+    <div class="join-container">
+        <!-- 进度条 -->
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: 33%"></div>
+        </div>
+
+        <!-- 步骤1：基本信息 -->
+        <div class="form-step active" data-step="1">
+            <div class="form-header">
+                <h2 class="form-title">加入建設團隊</h2>
+                <p class="form-subtitle">請填寫基本資料，我們將在24小時內審核您的申請</p>
+            </div>
+
+            <div class="input-grid">
+                <div class="input-group">
+                    <label class="input-label">Minecraft 用戶名</label>
+                    <input type="text" class="input-field" 
+                           placeholder="例: Builder_Steve" 
+                           data-validate="required|min:3|max:16">
+                    <div class="error-msg"></div>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">電子信箱</label>
+                    <input type="email" class="input-field" 
+                           placeholder="example@domain.com" 
+                           data-validate="required|email">
+                    <div class="error-msg"></div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn btn-primary" onclick="nextStep()">
+                    下一步
+                    <ion-icon name="arrow-forward-outline"></ion-icon>
+                </button>
+            </div>
+        </div>
+
+        <!-- 步骤2：详细信息 -->
+<div class="form-step" data-step="2">
+    <div class="form-header">
+        <h2 class="form-title">建設經驗</h2>
+        <p class="form-subtitle">請分享您的城建經驗與專長領域</p>
+    </div>
+
+    <div class="input-grid">
+        <div class="input-group">
+            <label class="input-label">擅長領域</label>
+            <select class="input-field" data-validate="required">
+                <option value="">請選擇...</option>
+                <option>交通規劃</option>
+                <option>建築設計</option>
+                <option>景觀美化</option>
+                <option>紅石工程</option>
+            </select>
+            <div class="error-msg"></div>
+        </div>
+
+        <div class="input-group">
+            <label class="input-label">作品集連結</label>
+            <input type="url" class="input-field" 
+                   placeholder="https://example.com/portfolio"
+                   data-validate="url">
+            <div class="error-msg"></div>
+        </div>
+    </div>
+
+    <div class="input-group">
+        <label class="input-label">參與原因</label>
+        <textarea class="input-field" rows="4" 
+                  data-validate="required|min:50"
+                  placeholder="請簡述您想參與的原因及相關經驗..."></textarea>
+        <div class="error-msg"></div>
+    </div>
+
+    <div class="form-actions">
+        <button class="btn btn-secondary" onclick="prevStep()">
+            <ion-icon name="arrow-back-outline"></ion-icon>
+            上一步
+        </button>
+        <button class="btn btn-primary" onclick="nextStep()">
+            下一步
+            <ion-icon name="arrow-forward-outline"></ion-icon>
+        </button>
+    </div>
+</div>
+
+<!-- 步骤3：确认提交 -->
+<div class="form-step" data-step="3">
+    <div class="form-header">
+        <h2 class="form-title">確認申請</h2>
+        <p class="form-subtitle">請確認以下資訊無誤後提交</p>
+    </div>
+
+    <div class="review-list">
+        <div class="review-item">
+            <span class="review-label">用戶名:</span>
+            <span id="review-username"></span>
+        </div>
+        <div class="review-item">
+            <span class="review-label">電子郵件:</span>
+            <span id="review-email"></span>
+        </div>
+        <div class="review-item">
+            <span class="review-label">擅長領域:</span>
+            <span id="review-specialty"></span>
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <button class="btn btn-secondary" onclick="prevStep()">
+            <ion-icon name="arrow-back-outline"></ion-icon>
+            返回修改
+        </button>
+        <button class="btn btn-primary" onclick="submitForm()">
+            <ion-icon name="checkmark-outline"></ion-icon>
+            確認提交
+        </button>
+    </div>
+</div>
+
+<script>
+    // 表单控制逻辑
+    let currentStep = 1;
+    const formData = {};
+
+    function updateProgress() {
+        const progress = document.querySelector('.progress-fill');
+        progress.style.width = `${(currentStep / 3) * 100}%`;
+    }
+
+    function validateStep(step) {
+        let isValid = true;
+        const inputs = document.querySelectorAll(`[data-step="${step}"] [data-validate]`);
+        
+        inputs.forEach(input => {
+            const rules = input.getAttribute('data-validate').split('|');
+            const value = input.value.trim();
+            const errorDiv = input.closest('.input-group').querySelector('.error-msg');
+
+            errorDiv.textContent = '';
+            
+            // 验证规则
+            if (rules.includes('required') && !value) {
+                errorDiv.textContent = '此欄位為必填';
+                isValid = false;
+            }
+            
+            if (rules.includes('email') && !/\S+@\S+\.\S+/.test(value)) {
+                errorDiv.textContent = '電子郵件格式不正確';
+                isValid = false;
+            }
+            
+            if (rules.includes('url') && !/^(ftp|http|https):\/\/[^ "]+$/.test(value)) {
+                errorDiv.textContent = '請輸入有效的網址';
+                isValid = false;
+            }
+            
+            if (rules.includes('min:3') && value.length < 3) {
+                errorDiv.textContent = '至少需要3個字符';
+                isValid = false;
+            }
+        });
+
+        return isValid;
+    }
+
+    function nextStep() {
+        if (!validateStep(currentStep)) return;
+        
+        // 收集数据
+        document.querySelectorAll(`[data-step="${currentStep}"] input, 
+                                 [data-step="${currentStep}"] select,
+                                 [data-step="${currentStep}"] textarea`)
+            .forEach(field => {
+                formData[field.name || field.id] = field.value;
+            });
+
+        if (currentStep === 2) {
+            // 更新确认信息
+            document.getElementById('review-username').textContent = formData.username;
+            document.getElementById('review-email').textContent = formData.email;
+            document.getElementById('review-specialty').textContent = formData.specialty;
+        }
+
+        document.querySelector(`[data-step="${currentStep}"]`).classList.remove('active');
+        currentStep++;
+        document.querySelector(`[data-step="${currentStep}"]`).classList.add('active');
+        updateProgress();
+    }
+
+    function prevStep() {
+        document.querySelector(`[data-step="${currentStep}"]`).classList.remove('active');
+        currentStep--;
+        document.querySelector(`[data-step="${currentStep}"]`).classList.add('active');
+        updateProgress();
+    }
+
+    async function submitForm() {
+        const submitBtn = document.querySelector('[onclick="submitForm()"]');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `<ion-icon name="reload-outline"></ion-icon> 提交中...`;
+
+        try {
+            const response = await fetch('/api/join', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (!response.ok) throw new Error('提交失敗');
+            window.location.href = '/join-success.html';
+        } catch (error) {
+            alert('提交失敗，請稍後重試');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = `<ion-icon name="checkmark-outline"></ion-icon> 確認提交`;
+        }
+    }
+</script>
+
+<!-- 样式补充 -->
+<style>
+    .review-list {
+        background: rgba(245, 245, 245, 0.9);
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin: 2rem 0;
+    }
+
+    .review-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.8rem 0;
+        border-bottom: 1px solid rgba(108,117,125,0.1);
+    }
+
+    .review-item:last-child {
+        border-bottom: none;
+    }
+
+    .review-label {
+        color: var(--metal-accent);
+        font-weight: 500;
+    }
+</style>
+
