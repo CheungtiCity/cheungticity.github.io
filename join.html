@@ -551,41 +551,6 @@
             }
         }
     </script>
-    <script>
-        // 初始化后添加匿名登录
-        const auth = firebase.auth();
-        
-        // 匿名登录函数
-        async function initializeAuth() {
-            try {
-                await auth.signInAnonymously();
-                console.log('匿名登录成功');
-            } catch (error) {
-                console.error('匿名登录失败:', error);
-            }
-        }
-    
-        // 修改后的提交函数
-        async function submitForm() {
-            try {
-                // 检查登录状态
-                if (!auth.currentUser) {
-                    await initializeAuth();
-                }
-    
-                // 获取用户Token
-                const idToken = await auth.currentUser.getIdToken();
-    
-                // 发送数据时携带Token
-                const docRef = await db.collection('applications').add({
-                    ...submissionData,
-                    _auth: idToken  // 添加验证令牌
-                });
-            } catch (error) {
-                console.error('提交失敗:', error);
-            }
-        }
-    </script>
     
 </body>
 </html>
