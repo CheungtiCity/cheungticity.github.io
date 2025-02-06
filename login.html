@@ -1,38 +1,16 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-    <script>
-        // Firebase初始化调试版
-        console.log('[DEBUG] 开始初始化Firebase');
-        
-        const firebaseConfig = {
-            apiKey: "AIzaSyDP3SY__81TQwqJMB0gNmf6yMx1nyMXiaA",
-            authDomain: "cheungticity.firebaseapp.com",
-            projectId: "cheungticity",
-            storageBucket: "cheungticity.firebasestorage.app",
-            messagingSenderId: "1030169122427",
-            appId: "1:1030169122427:web:41f88f835ba43a0c19b4de"
-        };
-    
-        try {
-            const app = firebase.initializeApp(firebaseConfig);
-            console.log('[SUCCESS] Firebase应用实例:', app);
-            console.log('Auth模块:', firebase.auth());
-        } catch (error) {
-            console.error('[ERROR] 初始化失败:', error);
-            alert('Firebase初始化错误: ' + error.message);
-        }
-    </script>
-    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>長堤丨MCMTR 城建計劃</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;500&display=swap" rel="stylesheet">
-    <!-- 新增 Firebase SDK -->
+    
+    <!-- Firebase SDK 必须首先加载 -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+
     <style>
-        /* 原有CSS保持不變 */
         :root {
             --silver-primary: #e0e0e0;
             --silver-secondary: #f8f9fa;
@@ -153,8 +131,11 @@
     </div>
 
     <script>
-        
-        // 初始化 Firebase
+        // 调试信息初始化
+        console.log('[初始化] 開始加載腳本');
+        console.log('[SDK狀態] Firebase對象:', typeof firebase !== 'undefined' ? '已載入' : '未載入');
+
+        // Firebase 配置
         const firebaseConfig = {
             apiKey: "AIzaSyDP3SY__81TQwqJMB0gNmf6yMx1nyMXiaA",
             authDomain: "cheungticity.firebaseapp.com",
@@ -164,62 +145,97 @@
             appId: "1:1030169122427:web:41f88f835ba43a0c19b4de",
             measurementId: "G-JWTDBWJH58"
         };
-        
-        const app = firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth(app);
+
+        // 初始化Firebase
+        let app, auth;
+        try {
+            app = firebase.initializeApp(firebaseConfig);
+            auth = firebase.auth(app);
+            console.log('[SUCCESS] Firebase初始化完成，应用实例:', app);
+            console.log('[DEBUG] Auth模块验证:', typeof auth.signInWithEmailAndPassword);
+        } catch (error) {
+            console.error('[ERROR] Firebase初始化失败:', error);
+            showError('passwordError', '系統初始化失敗，請聯繫管理員');
+        }
 
         async function validateForm() {
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value;
             let isValid = true;
 
-            // 用戶名驗證
+            // 清除旧错误提示
+            document.querySelectorAll('.error-message').forEach(el => el.style.opacity = '0');
+
+            // 客户端验证
             if (username.length < 4) {
                 showError('usernameError', '用戶名需至少4個字符');
                 isValid = false;
             }
-
-            // 密碼驗證
             if (password.length < 6) {
                 showError('passwordError', '密碼需至少6個字符');
                 isValid = false;
             }
-
             if (!isValid) return false;
 
             try {
-                // 自動補全郵箱域名
+                console.log('[DEBUG] 正在驗證用戶:', username);
                 const email = `${username}@cheungticity.com`;
-                await auth.signInWithEmailAndPassword(email, password);
+                
+                // 設置登入持久性
+                await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+                
+                // 執行登入
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                console.log('[SUCCESS] 用戶驗證通過 UID:', userCredential.user.uid);
+                
+                // 跳轉到儀表板
                 window.location.href = 'https://cheungticity.github.io/dashboard';
             } catch (error) {
+                console.error('[ERROR] 登入流程錯誤:', error);
                 handleAuthError(error);
             }
             return false;
         }
 
         function handleAuthError(error) {
-            const errorMessages = {
+            const errorMap = {
+                'auth/invalid-email': '無效的電子郵件格式',
+                'auth/user-disabled': '帳戶已被停用',
                 'auth/user-not-found': '用戶不存在',
                 'auth/wrong-password': '密碼錯誤',
-                'auth/too-many-requests': '嘗試次數過多，請稍後再試'
+                'auth/too-many-requests': '嘗試次數過多，請15分鐘後重試',
+                'auth/network-request-failed': '網絡連接失敗，請檢查網絡'
             };
-            showError('passwordError', errorMessages[error.code] || '登入失敗');
+
+            const errorMessage = errorMap[error.code] || `系統錯誤: ${error.code}`;
+            showError('passwordError', errorMessage);
         }
 
         function showError(elementId, message) {
             const errorElement = document.getElementById(elementId);
-            errorElement.textContent = message;
-            errorElement.style.opacity = '1';
-            setTimeout(() => errorElement.style.opacity = '0', 3000);
+            if (errorElement) {
+                errorElement.textContent = message;
+                errorElement.style.opacity = '1';
+                setTimeout(() => errorElement.style.opacity = '0', 5000);
+            }
         }
 
-        // 動態輸入驗證
-        document.querySelectorAll('input').forEach(input => {
-            input.addEventListener('input', () => {
-                document.getElementById(`${input.id}Error`).style.opacity = '0';
-            });
+        // 即時輸入驗證
+        document.getElementById('username').addEventListener('input', () => {
+            document.getElementById('usernameError').style.opacity = '0';
+        });
+        
+        document.getElementById('password').addEventListener('input', () => {
+            document.getElementById('passwordError').style.opacity = '0';
+        });
+
+        // 設備檢測
+        console.log('[DEBUG] 用戶設備信息:', {
+            userAgent: navigator.userAgent,
+            platform: navigator.platform,
+            cookiesEnabled: navigator.cookieEnabled
         });
     </script>
 </body>
 </html>
+
