@@ -6,7 +6,16 @@
     <title>長堤丨MCMTR 城建計劃</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;500&display=swap" rel="stylesheet">
     
-    <!-- Firebase SDK 必须首先加载 -->
+    <!-- 安全策略和缓存控制 -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self' *.firebaseio.com *.googleapis.com *.gstatic.com;
+        script-src 'self' *.gstatic.com 'unsafe-inline';
+        connect-src 'self' https://identitytoolkit.googleapis.com https://*.firebaseio.com;
+        style-src 'self' https://fonts.googleapis.com 'unsafe-inline';
+    ">
+
+    <!-- Firebase SDK (兼容模式) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 
@@ -15,6 +24,7 @@
             --silver-primary: #e0e0e0;
             --silver-secondary: #f8f9fa;
             --metal-accent: #6c757d;
+            --transition-speed: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         * {
@@ -34,23 +44,23 @@
         }
 
         .login-container {
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.95);
             padding: 2.5rem;
             border-radius: 12px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            width: 400px;
+            width: min(90%, 400px);
             transform: translateZ(0);
-            transition: transform 0.3s ease;
+            transition: transform var(--transition-speed);
         }
 
         .login-container:hover {
-            transform: translateY(-2px) translateZ(0);
+            transform: translateY(-2px);
         }
 
         .logo {
             text-align: center;
             margin-bottom: 2rem;
-            font-size: 2.2rem;
+            font-size: clamp(1.8rem, 5vw, 2.2rem);
             color: var(--metal-accent);
             letter-spacing: 2px;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
@@ -67,7 +77,7 @@
             border: 1px solid var(--silver-primary);
             border-radius: 6px;
             background: var(--silver-secondary);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all var(--transition-speed);
             font-size: 1rem;
         }
 
@@ -86,7 +96,7 @@
             border-radius: 6px;
             cursor: pointer;
             font-size: 1rem;
-            transition: all 0.3s ease;
+            transition: all var(--transition-speed);
             text-transform: uppercase;
             letter-spacing: 1px;
         }
@@ -103,13 +113,12 @@
             bottom: -20px;
             left: 0;
             opacity: 0;
-            transition: opacity 0.3s ease;
+            transition: opacity var(--transition-speed);
         }
 
-        @media (max-width: 480px) {
-            .login-container {
-                width: 90%;
-                padding: 1.8rem;
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                transition: none !important;
             }
         }
     </style>
@@ -117,13 +126,13 @@
 <body>
     <div class="login-container">
         <div class="logo">長堤丨MCMTR</div>
-        <form id="loginForm" onsubmit="return validateForm()">
+        <form id="loginForm">
             <div class="input-group">
-                <input type="text" id="username" placeholder="用戶名稱" required>
+                <input type="text" id="username" placeholder="用戶名稱" required autocomplete="username">
                 <span class="error-message" id="usernameError"></span>
             </div>
             <div class="input-group">
-                <input type="password" id="password" placeholder="密碼" required>
+                <input type="password" id="password" placeholder="密碼" required autocomplete="current-password">
                 <span class="error-message" id="passwordError"></span>
             </div>
             <button type="submit">登入系統</button>
@@ -131,110 +140,189 @@
     </div>
 
     <script>
-        // 调试信息初始化
-        console.log('[初始化] 開始加載腳本');
-        console.log('[SDK狀態] Firebase對象:', typeof firebase !== 'undefined' ? '已載入' : '未載入');
+        // ========================
+        // 初始化阶段
+        // ========================
+        (function init() {
+            console.debug('[Init] 脚本加载时间:', new Date().toISOString());
+            
+            // 网络状态检测
+            const isOnline = navigator.onLine;
+            if (!isOnline) {
+                showPersistentError('網絡連接不可用');
+                return;
+            }
 
-        // Firebase 配置
-        const firebaseConfig = {
-            apiKey: "AIzaSyDP3SY__81TQwqJMB0gNmf6yMx1nyMXiaA",
-            authDomain: "cheungticity.firebaseapp.com",
-            projectId: "cheungticity",
-            storageBucket: "cheungticity.firebasestorage.app",
-            messagingSenderId: "1030169122427",
-            appId: "1:1030169122427:web:41f88f835ba43a0c19b4de",
-            measurementId: "G-JWTDBWJH58"
-        };
+            // 调试信息
+            console.log('[SDK] Firebase版本:', firebase.SDK_VERSION);
+            console.log('[SDK] 可用模块:', Object.keys(firebase)
+                .filter(k => typeof firebase[k] === 'object'));
 
-        // 初始化Firebase
-        let app, auth;
-        try {
-            app = firebase.initializeApp(firebaseConfig);
-            auth = firebase.auth(app);
-            console.log('[SUCCESS] Firebase初始化完成，应用实例:', app);
-            console.log('[DEBUG] Auth模块验证:', typeof auth.signInWithEmailAndPassword);
-        } catch (error) {
-            console.error('[ERROR] Firebase初始化失败:', error);
-            showError('passwordError', '系統初始化失敗，請聯繫管理員');
-        }
+            // Firebase配置
+            const firebaseConfig = {
+                apiKey: "AIzaSyDP3SY__81TQwqJMB0gNmf6yMx1nyMXiaA",
+                authDomain: "cheungticity.firebaseapp.com",
+                projectId: "cheungticity",
+                storageBucket: "cheungticity.appspot.com",
+                messagingSenderId: "1030169122427",
+                appId: "1:1030169122427:web:41f88f835ba43a0c19b4de",
+                measurementId: "G-JWTDBWJH58"
+            };
 
-        async function validateForm() {
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value;
+            // 初始化Firebase
+            let app;
+            try {
+                app = firebase.initializeApp(firebaseConfig);
+                console.log('[Init] Firebase初始化成功');
+            } catch (error) {
+                console.error('[Fatal] Firebase初始化失败:', error);
+                showPersistentError('系統初始化失敗，請刷新頁面');
+                return;
+            }
+
+            // 获取auth实例
+            const auth = firebase.auth(app);
+            auth.useDeviceLanguage();  // 设置语言环境
+
+            // 表单提交处理
+            document.getElementById('loginForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const username = document.getElementById('username').value.trim();
+                const password = document.getElementById('password').value;
+
+                // 清除旧错误提示
+                clearErrors();
+
+                // 客户端验证
+                if (!validateInputs(username, password)) return;
+
+                try {
+                    // 添加网络检测
+                    if (!navigator.onLine) {
+                        throw new Error('network_error');
+                    }
+
+                    // 构建邮箱
+                    const email = `${username}@cheungticity.com`;
+                    console.debug('[Auth] 登录尝试:', email.substring(0, 3) + '***'); // 隐私保护
+
+                    // 设置持久化
+                    await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+
+                    // 执行登录
+                    const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                    console.log('[Auth] 登录成功 UID:', userCredential.user.uid);
+
+                    // 跳转前验证
+                    if (await checkRedirectSafety()) {
+                        window.location.href = 'https://cheungticity.github.io/dashboard';
+                    }
+                } catch (error) {
+                    handleAuthError(error);
+                }
+            });
+
+            // 网络状态监听
+            window.addEventListener('online', () => {
+                console.log('[Network] 网络恢复');
+                clearErrors();
+            });
+
+            window.addEventListener('offline', () => {
+                console.warn('[Network] 网络断开');
+                showPersistentError('網絡連接已中斷');
+            });
+        })();
+
+        // ========================
+        // 工具函数
+        // ========================
+        function validateInputs(username, password) {
             let isValid = true;
 
-            // 清除旧错误提示
-            document.querySelectorAll('.error-message').forEach(el => el.style.opacity = '0');
-
-            // 客户端验证
             if (username.length < 4) {
                 showError('usernameError', '用戶名需至少4個字符');
                 isValid = false;
             }
+
             if (password.length < 6) {
                 showError('passwordError', '密碼需至少6個字符');
                 isValid = false;
             }
-            if (!isValid) return false;
 
-            try {
-                console.log('[DEBUG] 正在驗證用戶:', username);
-                const email = `${username}@cheungticity.com`;
-                
-                // 設置登入持久性
-                await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-                
-                // 執行登入
-                const userCredential = await auth.signInWithEmailAndPassword(email, password);
-                console.log('[SUCCESS] 用戶驗證通過 UID:', userCredential.user.uid);
-                
-                // 跳轉到儀表板
-                window.location.href = 'https://cheungticity.github.io/dashboard';
-            } catch (error) {
-                console.error('[ERROR] 登入流程錯誤:', error);
-                handleAuthError(error);
-            }
-            return false;
+            return isValid;
         }
 
         function handleAuthError(error) {
+            console.error('[Auth] 登录错误:', error);
+            
             const errorMap = {
                 'auth/invalid-email': '無效的電子郵件格式',
                 'auth/user-disabled': '帳戶已被停用',
                 'auth/user-not-found': '用戶不存在',
                 'auth/wrong-password': '密碼錯誤',
                 'auth/too-many-requests': '嘗試次數過多，請15分鐘後重試',
-                'auth/network-request-failed': '網絡連接失敗，請檢查網絡'
+                'auth/network-request-failed': '網絡連接失敗',
+                'network_error': '網絡連接不可用'
             };
 
-            const errorMessage = errorMap[error.code] || `系統錯誤: ${error.code}`;
-            showError('passwordError', errorMessage);
+            const message = errorMap[error.code] || errorMap[error.message] || `系統錯誤: ${error.code || error.message}`;
+            showPersistentError(message);
         }
 
-        function showError(elementId, message) {
-            const errorElement = document.getElementById(elementId);
-            if (errorElement) {
-                errorElement.textContent = message;
-                errorElement.style.opacity = '1';
-                setTimeout(() => errorElement.style.opacity = '0', 5000);
+        async function checkRedirectSafety() {
+            try {
+                // 验证目标页面可达性
+                const response = await fetch('https://cheungticity.github.io/dashboard', {
+                    method: 'HEAD',
+                    mode: 'no-cors'
+                });
+                return true;
+            } catch (error) {
+                console.error('[Redirect] 目标页面不可达:', error);
+                showPersistentError('儀表板服務不可用');
+                return false;
             }
         }
 
-        // 即時輸入驗證
-        document.getElementById('username').addEventListener('input', () => {
-            document.getElementById('usernameError').style.opacity = '0';
-        });
-        
-        document.getElementById('password').addEventListener('input', () => {
-            document.getElementById('passwordError').style.opacity = '0';
-        });
+        function clearErrors() {
+            document.querySelectorAll('.error-message').forEach(el => {
+                el.style.opacity = '0';
+            });
+        }
 
-        // 設備檢測
-        console.log('[DEBUG] 用戶設備信息:', {
-            userAgent: navigator.userAgent,
-            platform: navigator.platform,
-            cookiesEnabled: navigator.cookieEnabled
-        });
+        function showError(elementId, message) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.textContent = message;
+                element.style.opacity = '1';
+                setTimeout(() => element.style.opacity = '0', 5000);
+            }
+        }
+
+        function showPersistentError(message) {
+            const container = document.createElement('div');
+            container.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: #dc3545;
+                color: white;
+                padding: 1rem 2rem;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                z-index: 1000;
+            `;
+            container.textContent = message;
+            document.body.appendChild(container);
+
+            setTimeout(() => {
+                container.style.opacity = '0';
+                setTimeout(() => container.remove(), 1000);
+            }, 5000);
+        }
     </script>
 </body>
 </html>
