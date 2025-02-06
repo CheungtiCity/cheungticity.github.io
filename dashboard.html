@@ -84,7 +84,116 @@
         .online { background: #28a745; }
         .offline { background: var(--admin-red); }
     </style>
+     <script>
+        // 初始化Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDP3SY__81TQwqJMB0gNmf6yMx1nyMXiaA",
+            authDomain: "cheungticity.firebaseapp.com",
+            projectId: "cheungticity",
+            storageBucket: "cheungticity.appspot.com",
+            messagingSenderId: "1030169122427",
+            appId: "1:1030169122427:web:41f88f835ba43a0c19b4de"
+        };
+
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth(app);
+        const db = firebase.firestore();
+
+        // 页面加载时立即检查
+        document.addEventListener('DOMContentLoaded', () => {
+            initAuthCheck();
+            setupInactivityTimer(300); // 5分钟无操作自动登出
+        });
+
+        // 认证状态检查
+        function initAuthCheck() {
+            auth.onAuthStateChanged(async user => {
+                try {
+                    if (!user) {
+                        redirectToLogin();
+                        return;
+                    }
+
+                    // 验证管理員权限
+                    const isAdmin = await checkAdminPrivilege(user.uid);
+                    if (!isAdmin) {
+                        showAccessDenied();
+                        await auth.signOut();
+                        return;
+                    }
+
+                    // 权限通过后加载内容
+                    loadDashboardContent();
+                } catch (error) {
+                    console.error('权限验证失败:', error);
+                    handleAuthError(error);
+                }
+            });
+        }
+
+        // 管理员权限验证
+        async function checkAdminPrivilege(uid) {
+            try {
+                const doc = await db.collection('admins').doc(uid).get();
+                return doc.exists;
+            } catch (error) {
+                console.error('权限检查错误:', error);
+                return false;
+            }
+        }
+
+        // 加载仪表盘内容
+        async function loadDashboardContent() {
+            document.body.style.display = 'block'; // 显示页面内容
+            try {
+                await Promise.all([
+                    loadServerStatus(),
+                    loadUserList(),
+                    setupRealtimeUpdates()
+                ]);
+            } catch (error) {
+                console.error('数据加载失败:', error);
+                showPersistentError('數據加載失敗，請刷新頁面');
+            }
+        }
+
+        // 无权限处理
+        function showAccessDenied() {
+            alert('存取拒絕：您的帳戶沒有管理員權限');
+            redirectToLogin();
+        }
+
+        // 错误处理
+        function handleAuthError(error) {
+            const errorMap = {
+                'permission-denied': '資料庫權限不足',
+                'network-error': '網路連接失敗'
+            };
+            const message = errorMap[error.code] || '系統發生錯誤';
+            showPersistentError(message + '，即將跳轉至登入頁');
+            setTimeout(redirectToLogin, 3000);
+        }
+
+        // 登出功能
+        async function logout() {
+            try {
+                await auth.signOut();
+                redirectToLogin();
+            } catch (error) {
+                console.error('登出失敗:', error);
+                showPersistentError('登出失敗，請手動清除瀏覽器快取');
+            }
+        }
+
+        // 跳转至登录页
+        function redirectToLogin() {
+            window.location.replace('https://cheungticity.github.io/login');
+        }
+
+        // 其他数据加载函数保持不变...
+    </script>
 </head>
+<body style="display:none;"> <!-- 初始隐藏页面 -->
 <body>
     <div class="admin-header">
         <div class="dashboard-title">長堤城建管理系統 v2.1</div>
