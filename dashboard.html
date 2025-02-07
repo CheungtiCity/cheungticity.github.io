@@ -4,28 +4,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>長堤丨MCMTR 城建計劃</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;500&display=swap" rel="stylesheet">
-
-    <!-- 安全策略和缓存控制 -->
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Content-Security-Policy" content="
-        default-src 'self' *.firebaseio.com *.googleapis.com *.gstatic.com;
-        script-src 'self' *.gstatic.com 'unsafe-inline';
-        connect-src 'self' https://identitytoolkit.googleapis.com https://*.firebaseio.com;
-        style-src 'self' https://fonts.googleapis.com 'unsafe-inline';
-    ">
-
-    <!-- Firebase SDK (兼容模式) -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
-
+    <title>長堤丨MCMTR 城建計劃 - 後台管理系統</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;500;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/ionicons@5.5.2/dist/css/ionicons.min.css" rel="stylesheet">
     <style>
         :root {
-            --silver-primary: #e0e0e0;
-            --silver-secondary: #f8f9fa;
-            --metal-accent: #6c757d;
-            --transition-speed: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --platinum: #E5E4E2;
+            --silver: #C0C0C0;
+            --metal-accent: #6C757D;
+            --obsidian: #0A0A0A;
+            --gradient-angle: 152deg;
+            --sidebar-width: 250px;
         }
 
         * {
@@ -36,253 +25,223 @@
         }
 
         body {
-            background: linear-gradient(135deg, var(--silver-secondary) 0%, var(--silver-primary) 100%);
+            background: linear-gradient(var(--gradient-angle),
+                    var(--platinum) 0%,
+                    rgba(229, 228, 226, 0.95) 50%,
+                    rgba(192, 192, 192, 0.9) 100%);
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             backdrop-filter: blur(2px);
         }
 
-        .login-container {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 2.5rem;
-            border-radius: 12px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            width: min(90%, 400px);
-            transform: translateZ(0);
-            transition: transform var(--transition-speed);
+        /* 导航栏 */
+        .nav-bar {
+            background: rgba(255, 255, 255, 0.88);
+            padding: 1.2rem 5%;
+            backdrop-filter: saturate(180%) blur(20px);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
         }
 
-        .login-container:hover {
-            transform: translateY(-2px);
+        .nav-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .logo {
-            text-align: center;
-            margin-bottom: 2rem;
-            font-size: clamp(1.8rem, 5vw, 2.2rem);
+            font-size: 1.8rem;
+            color: var(--obsidian);
+            letter-spacing: 1.2px;
+            font-weight: 700;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-link {
             color: var(--metal-accent);
-            letter-spacing: 2px;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
-        }
-
-        .input-group {
-            margin-bottom: 1.8rem;
+            text-decoration: none;
             position: relative;
+            padding: 0.5rem 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        input {
-            width: 100%;
-            padding: 12px 20px;
-            border: 1px solid var(--silver-primary);
-            border-radius: 6px;
-            background: var(--silver-secondary);
-            transition: all var(--transition-speed);
-            font-size: 1rem;
-        }
-
-        input:focus {
-            outline: none;
-            border-color: var(--metal-accent);
-            box-shadow: 0 0 0 2px rgba(108, 117, 125, 0.2);
-        }
-
-        button {
-            width: 100%;
-            padding: 12px;
-            background: var(--metal-accent);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: all var(--transition-speed);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        button:hover {
-            background: #5a6268;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .error-message {
-            color: #dc3545;
-            font-size: 0.85rem;
+        .nav-link::after {
+            content: '';
             position: absolute;
-            bottom: -20px;
+            bottom: 0;
             left: 0;
-            opacity: 0;
-            transition: opacity var(--transition-speed);
+            width: 0;
+            height: 2px;
+            background: var(--metal-accent);
+            transition: width 0.3s ease;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        /* 侧边栏 */
+        .sidebar {
+            position: fixed;
+            top: 60px;
+            left: 0;
+            width: var(--sidebar-width);
+            height: calc(100vh - 60px);
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            padding: 2rem 1rem;
+            overflow-y: auto;
+        }
+
+        .sidebar ul {
+            list-style-type: none;
+        }
+
+        .sidebar ul li {
+            margin-bottom: 1rem;
+        }
+
+        .sidebar ul li a {
+            color: var(--metal-accent);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .sidebar ul li a:hover {
+            color: var(--obsidian);
+        }
+
+        /* 主内容区域 */
+        .main-content {
+            margin-top: 60px;
+            margin-left: var(--sidebar-width);
+            padding: 2rem;
+        }
+
+        /* 内容管理模块 */
+        .content-management {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .content-management h2 {
+            margin-bottom: 1rem;
+        }
+
+        .content-management textarea {
+            width: 100%;
+            height: 200px;
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        /* 用户管理模块 */
+        .user-management {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-management h2 {
+            margin-bottom: 1rem;
+        }
+
+        .user-management table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .user-management table th,
+        .user-management table td {
+            border: 1px solid var(--silver);
+            padding: 0.5rem;
+            text-align: left;
         }
     </style>
 </head>
 
 <body>
-    <div class="login-container">
-        <div class="logo">長堤丨MCMTR 城建計劃</div>
-        <form id="loginForm">
-            <div class="input-group">
-                <input type="text" id="username" placeholder="用戶名" required autocomplete="username">
-                <span class="error-message" id="usernameError"></span>
+    <!-- 导航栏 -->
+    <div class="nav-bar">
+        <div class="nav-content">
+            <div class="logo">長堤丨MCMTR 城建計劃</div>
+            <div class="nav-links">
+                <a href="#" class="nav-link">設定</a>
+                <a href="#" class="nav-link">退出</a>
             </div>
-            <div class="input-group">
-                <input type="password" id="password" placeholder="密碼" required autocomplete="current-password">
-                <span class="error-message" id="passwordError"></span>
-            </div>
-            <button type="submit">登入系統</button>
-        </form>
+        </div>
+    </div>
+
+    <!-- 侧边栏 -->
+    <div class="sidebar">
+        <ul>
+            <li><a href="#"><ion-icon name="document-text"></ion-icon> 內容管理</a></li>
+            <li><a href="#"><ion-icon name="people"></ion-icon> 用戶管理</a></li>
+            <li><a href="#"><ion-icon name="settings"></ion-icon> 系統設定</a></li>
+        </ul>
+    </div>
+
+    <!-- 主内容区域 -->
+    <div class="main-content">
+        <!-- 内容管理模块 -->
+        <div class="content-management">
+            <h2>內容管理</h2>
+            <p>編輯主頁面內容（index.html）：</p>
+            <textarea id="indexContentEditor"></textarea>
+            <button onclick="saveIndexContent()">保存更改</button>
+        </div>
+
+        <!-- 用户管理模块 -->
+        <div class="user-management">
+            <h2>用戶管理</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>用戶名</th>
+                        <th>郵箱</th>
+                        <th>角色</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>用戶1</td>
+                        <td>user1@example.com</td>
+                        <td>管理員</td>
+                        <td><button>編輯</button> <button>刪除</button></td>
+                    </tr>
+                    <tr>
+                        <td>用戶2</td>
+                        <td>user2@example.com</td>
+                        <td>普通用戶</td>
+                        <td><button>編輯</button> <button>刪除</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <script>
-        // ========================
-        // 初始化阶段
-        // ========================
-        (function init() {
-            console.debug('[Init] 脚本加载时间:', new Date().toISOString());
-
-            // 网络状态检测
-            const isOnline = navigator.onLine;
-            if (!isOnline) {
-                showPersistentError('網絡連接不可用');
-                return;
-            }
-
-            // 调试信息
-            console.log('[SDK] Firebase版本:', firebase.SDK_VERSION);
-            console.log('[SDK] 可用模块:', Object.keys(firebase)
-                .filter(k => typeof firebase[k] === 'object'));
-
-            // Firebase配置
-            const firebaseConfig = {
-                apiKey: "AIzaSyDP3SY__81TQwqJMB0gNmf6yMx1nyMXiaA",
-                authDomain: "cheungticity.firebaseapp.com",
-                databaseURL: "https://cheungticity-default-rtdb.asia-southeast1.firebasedatabase.app",
-                projectId: "cheungticity",
-                storageBucket: "cheungticity.firebasestorage.app",
-                messagingSenderId: "1030169122427",
-                appId: "1:1030169122427:web:41f88f835ba43a0c19b4de",
-                measurementId: "G-JWTDBWJH58"
-            };
-
-            // 初始化Firebase
-            let app;
-            try {
-                app = firebase.initializeApp(firebaseConfig);
-                console.log('[Init] Firebase初始化成功');
-            } catch (error) {
-                console.error('[Fatal] Firebase初始化失败:', error);
-                showPersistentError('系統初始化失敗，請刷新頁面');
-                return;
-            }
-
-            // 获取auth实例
-            const auth = firebase.auth(app);
-            auth.useDeviceLanguage();  // 设置语言环境
-
-            // 表单提交处理
-            document.getElementById('loginForm').addEventListener('submit', async (e) => {
-                e.preventDefault();
-
-                const username = document.getElementById('username').value.trim();
-                const password = document.getElementById('password').value;
-
-                // 清除旧错误提示
-                clearErrors();
-
-                // 客户端验证
-                if (!validateInputs(username, password)) return;
-
-                try {
-                    // 添加网络检测
-                    if (!navigator.onLine) {
-                        throw new Error('network_error');
-                    }
-
-                    // 构建邮箱
-                    const email = `${username}@cheungticity.com`;
-
-                    console.debug('[Auth] 登录尝试:', email.substring(0, 3) + '***'); // 隐私保护
-
-                    // 设置持久化
-                    await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-
-                    // 执行登录
-                    const userCredential = await auth.signInWithEmailAndPassword(email, password);
-                    console.log('[Auth] 登录成功 UID:', userCredential.user.uid);
-
-                    // 跳转前验证
-                    if (await checkRedirectSafety()) {
-                        window.location.href = 'dashboard.html';
-                    }
-                } catch (error) {
-                    handleAuthError(error);
-                }
-            });
-
-            // 网络状态监听
-            window.addEventListener('online', () => {
-                console.log('[Network] 网络恢复');
-                clearErrors();
-            });
-
-            window.addEventListener('offline', () => {
-                console.warn('[Network] 网络断开');
-                showPersistentError('網絡連接已中斷');
-            });
-        })();
-
-        // ========================
-        // 工具函数
-        // ========================
-        function validateInputs(username, password) {
-            let isValid = true;
-
-            if (username.length < 4) {
-                document.getElementById('usernameError').textContent = '用戶名長度不能小於4個字符';
-                document.getElementById('usernameError').style.opacity = 1;
-                isValid = false;
-            }
-
-            if (password.length < 6) {
-                document.getElementById('passwordError').textContent = '密碼長度不能小於6個字符';
-                document.getElementById('passwordError').style.opacity = 1;
-                isValid = false;
-            }
-
-            return isValid;
-        }
-
-        function clearErrors() {
-            const errorElements = document.querySelectorAll('.error-message');
-            errorElements.forEach(el => {
-                el.textContent = '';
-                el.style.opacity = 0;
-            });
-        }
-
-        function showPersistentError(message) {
-            alert(message);
-        }
-
-        function handleAuthError(error) {
-            if (error.code === 'auth/wrong-password') {
-                document.getElementById('passwordError').textContent = '密碼錯誤';
-                document.getElementById('passwordError').style.opacity = 1;
-            } else if (error.code === 'auth/user-not-found') {
-                document.getElementById('usernameError').textContent = '用戶不存在';
-                document.getElementById('usernameError').style.opacity = 1;
-            } else if (error.code === 'network_error') {
-                showPersistentError('網絡連接不可用，請檢查網絡');
-            } else {
-                showPersistentError('登錄失敗，請稍後再試');
-            }
-        }
-
-        async function checkRedirectSafety() {
-            // 简单示例，可根据实际情况扩展
-            return true;
+        // 模拟保存主页内容的函数
+        function saveIndexContent() {
+            const content = document.getElementById('indexContentEditor').value;
+            // 这里可以使用AJAX或Fetch API将内容发送到服务器进行保存
+            console.log('保存的主页内容：', content);
         }
     </script>
 </body>
