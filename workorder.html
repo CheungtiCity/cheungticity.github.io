@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>工单系统丨長堤城建</title>
+    <title>工單系统丨長堤城建</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;500;700&display=swap" rel="stylesheet">
     <link href="https://unpkg.com/ionicons@5.5.2/dist/css/ionicons.min.css" rel="stylesheet">
     <style>
@@ -163,25 +163,25 @@
     <!-- 工单表单 -->
     <div class="workorder-container">
         <div class="form-header">
-            <h2 class="form-title">工单系统</h2>
+            <h2 class="form-title">工單系統</h2>
         </div>
         <form id="workorder-form">
             <div class="input-grid">
                 <div class="input-group">
-                    <label class="input-label">MC 用户名</label>
+                    <label class="input-label">MC用戶名</label>
                     <input type="text" class="input-field" id="mc-username" name="mc-username" required>
                 </div>
                 <div class="input-group">
-                    <label class="input-label">电子邮件</label>
+                    <label class="input-label">電子郵件</label>
                     <input type="email" class="input-field" id="email" name="email" required>
                 </div>
                 <div class="input-group">
-                    <label class="input-label">QQ 号</label>
+                    <label class="input-label">QQ 號</label>
                     <input type="text" class="input-field" id="qq-number" name="qq-number" required>
                 </div>
             </div>
             <div class="form-actions">
-                <button type="submit" class="submit-btn">提交工单</button>
+                <button type="submit" class="submit-btn">提交工單</button>
             </div>
         </form>
     </div>
@@ -204,18 +204,18 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error('提交工单时出现错误，请稍后再试。');
+                    throw new Error('提交工單時出現錯誤，請稍後再試。');
                 }
 
                 const data = await response.json();
                 if (data.ok) {
                     window.location.href = '/join-success.html';
                 } else {
-                    throw new Error(data.error || '提交工单失败，请检查您的输入。');
+                    throw new Error(data.error || '提交工單失敗，請檢查您的輸入。');
                 }
             } catch (error) {
-                console.error('提交失败:', error);
-                alert(`提交失败：${error.message}`);
+                console.error('提交失敗:', error);
+                alert(`提交失敗：${error.message}`);
             }
         });
     </script>
