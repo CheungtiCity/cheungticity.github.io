@@ -6,11 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>管理中樞丨長堤城建</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;500;700&display=swap" rel="stylesheet">
-    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-    <!-- Chart.js for charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -22,7 +19,7 @@
         }
 
         body {
-            font-family: 'Noto+Sans+TC', sans-serif;
+            font-family: 'Noto Sans TC', sans-serif;
             margin: 0;
             padding: 2rem;
             background: var(--background);
@@ -110,85 +107,153 @@
             color: var(--metal);
         }
 
-        .iframe-container {
-            width: 100%;
-            height: 600px;
+        /* 新增样式 */
+        .user-info {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .user-info span {
+            margin-right: 1rem;
+        }
+
+        .logout-button {
+            padding: 0.5rem 1rem;
+            background: var(--danger);
+            color: white;
             border: none;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .todo-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .todo-item input[type="checkbox"] {
+            margin-right: 1rem;
+        }
+
+        .todo-item button {
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 0.2rem 0.5rem;
+            cursor: pointer;
         }
     </style>
 </head>
 
 <body>
-    <div id="loadingScreen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.8); display: flex; justify-content: center; align-items: center; font-size: 2rem;">
-        正在驗證用戶身份...
+    <!-- 用户信息和退出登录按钮 -->
+    <div class="user-info">
+        <span id="userEmail">用戶郵箱載入中...</span>
+        <button class="logout-button" onclick="logout()">退出登錄</button>
     </div>
-    <div id="dashboardContent" style="display: none;">
-        <div class="dashboard-container">
-            <!-- 服务器状态模块 -->
-            <div class="data-card">
-                <h2 class="card-title">伺服器監控</h2>
-                <div class="server-status">
-                    <div class="status-indicator" id="serverStatus"></div>
-                    <div>
-                        <p style="margin:0">節點：cn-cd-2.ioll.cc:10634</p>
-                        <p id="serverLatency" style="margin:0.5rem 0 0 0;font-size:0.9em">延遲：檢測中...</p>
-                    </div>
-                </div>
-                <div class="chart-container">
-                    <canvas id="trafficChart"></canvas>
-                </div>
-            </div>
 
-            <!-- Firebase 数据模块 -->
-            <div class="data-card">
-                <h2 class="card-title">Firebase 即時數據（最近10筆）</h2>
-                <div id="firebaseData" class="data-list">
-                    <div class="data-loading">數據加載中...</div>
-                </div>
-                <div class="chart-container">
-                    <canvas id="firebaseChart"></canvas>
+    <div class="dashboard-container">
+        <!-- 服务器状态模块 -->
+        <div class="data-card">
+            <h2 class="card-title">伺服器監控</h2>
+            <div class="server-status">
+                <div class="status-indicator" id="serverStatus"></div>
+                <div>
+                    <p style="margin:0">節點：cn-cd-2.ioll.cc:10634</p>
+                    <p id="serverLatency" style="margin:0.5rem 0 0 0;font-size:0.9em">延遲：檢測中...</p>
                 </div>
             </div>
+            <div class="chart-container">
+                <canvas id="trafficChart"></canvas>
+            </div>
+        </div>
 
-            <!-- Formspree 数据模块 -->
-            <div class="data-card">
-                <h2 class="card-title">Formspree 表單提交記錄</h2>
-                <iframe class="iframe-container" src="https://formspree.io/forms/xqaelerk/submissions"></iframe>
+        <!-- Firebase 数据模块 -->
+        <div class="data-card">
+            <h2 class="card-title">Firebase 即時數據（最近10筆）</h2>
+            <div id="firebaseData" class="data-list">
+                <!-- 这里将显示 Firebase 数据 -->
             </div>
+        </div>
+
+        <!-- 实时数据统计模块 -->
+        <div class="data-card">
+            <h2 class="card-title">實時數據統計</h2>
+            <div id="realTimeStats">
+                <p>訪問量：<span id="visitsCount">0</span></p>
+                <p>用戶註冊數：<span id="userRegistrationCount">0</span></p>
+            </div>
+        </div>
+
+        <!-- 待办事项列表模块 -->
+        <div class="data-card">
+            <h2 class="card-title">待辦事項列表</h2>
+            <div id="todoList" class="data-list">
+                <!-- 这里将显示待办事项 -->
+            </div>
+            <input type="text" id="newTodoInput" placeholder="新增待辦事項">
+            <button onclick="addTodo()">添加</button>
         </div>
     </div>
 
     <script>
-        // Firebase 配置
-        const firebaseConfig = {
-            apiKey: "AIzaSyDP3SY__81TQwqJMB0gNmf6yMx1nyMXiaA",
-            authDomain: "cheungticity.firebaseapp.com",
-            databaseURL: "https://cheungticity-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "cheungticity",
-            storageBucket: "cheungticity.firebasestorage.app",
-            messagingSenderId: "1030169122427",
-            appId: "1:1030169122427:web:41f88f835ba43a0c19b4de",
-            measurementId: "G-JWTDBWJH58"
-        };
-
         // 初始化 Firebase
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
         firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
 
-        // 检查用户是否已经登录
-        firebase.auth().onAuthStateChanged(user => {
-            const loadingScreen = document.getElementById('loadingScreen');
-            const dashboardContent = document.getElementById('dashboardContent');
+        // 获取用户信息
+        auth.onAuthStateChanged(user => {
             if (user) {
-                // 用户已登录，显示仪表盘内容
-                loadingScreen.style.display = 'none';
-                dashboardContent.style.display = 'block';
+                document.getElementById('userEmail').textContent = user.email;
             } else {
-                // 用户未登录，重定向到登录页面
                 window.location.href = 'login.html';
             }
         });
+
+        // 退出登录函数
+        function logout() {
+            auth.signOut().then(() => {
+                window.location.href = 'login.html';
+            }).catch(error => {
+                console.error('退出登录时出错：', error);
+            });
+        }
+
+        // 添加待办事项函数
+        function addTodo() {
+            const input = document.getElementById('newTodoInput');
+            const todoText = input.value.trim();
+            if (todoText) {
+                const todoList = document.getElementById('todoList');
+                const todoItem = document.createElement('div');
+                todoItem.className = 'todo-item';
+                todoItem.innerHTML = `
+                    <input type="checkbox">
+                    <span>${todoText}</span>
+                    <button onclick="removeTodo(this)">刪除</button>
+                `;
+                todoList.appendChild(todoItem);
+                input.value = '';
+            }
+        }
+
+        // 删除待办事项函数
+        function removeTodo(button) {
+            const todoItem = button.parentNode;
+            todoItem.parentNode.removeChild(todoItem);
+        }
     </script>
 </body>
 
