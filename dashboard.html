@@ -7,6 +7,7 @@
     <title>管理中樞丨長堤城建</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;500;700&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script> <!-- 确保导入auth模块 -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -16,13 +17,15 @@
             --success: #28a745;
             --danger: #dc3545;
             --background: #f8f9fa;
+            --background-gradient: linear-gradient(135deg, #f8f9fa 0%, #e0e0e0 100%);
+            --transition-speed: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         body {
             font-family: 'Noto Sans TC', sans-serif;
             margin: 0;
             padding: 2rem;
-            background: var(--background);
+            background: var(--background-gradient);
         }
 
         .dashboard-container {
@@ -39,6 +42,11 @@
             padding: 1.5rem;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             min-height: 400px;
+            transition: box-shadow var(--transition-speed);
+        }
+
+        .data-card:hover {
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
         }
 
         .card-title {
@@ -57,6 +65,11 @@
             background: rgba(40, 167, 69, 0.1);
             border-radius: 8px;
             margin-bottom: 1.5rem;
+            transition: background-color var(--transition-speed);
+        }
+
+        .server-status:hover {
+            background: rgba(40, 167, 69, 0.2);
         }
 
         .status-indicator {
@@ -84,6 +97,11 @@
             padding: 1rem;
             background: rgba(108, 117, 125, 0.05);
             border-radius: 8px;
+            transition: background-color var(--transition-speed);
+        }
+
+        .data-item:hover {
+            background: rgba(108, 117, 125, 0.1);
         }
 
         .submission-meta {
@@ -106,56 +124,10 @@
             text-align: center;
             color: var(--metal);
         }
-
-        /* 新增样式 */
-        .user-info {
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            margin-bottom: 2rem;
-        }
-
-        .user-info span {
-            margin-right: 1rem;
-        }
-
-        .logout-button {
-            padding: 0.5rem 1rem;
-            background: var(--danger);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-
-        .todo-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .todo-item input[type="checkbox"] {
-            margin-right: 1rem;
-        }
-
-        .todo-item button {
-            background: var(--danger);
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 0.2rem 0.5rem;
-            cursor: pointer;
-        }
     </style>
 </head>
 
 <body>
-    <!-- 用户信息和退出登录按钮 -->
-    <div class="user-info">
-        <span id="userEmail">用戶郵箱載入中...</span>
-        <button class="logout-button" onclick="logout()">退出登錄</button>
-    </div>
-
     <div class="dashboard-container">
         <!-- 服务器状态模块 -->
         <div class="data-card">
@@ -176,84 +148,88 @@
         <div class="data-card">
             <h2 class="card-title">Firebase 即時數據（最近10筆）</h2>
             <div id="firebaseData" class="data-list">
-                <!-- 这里将显示 Firebase 数据 -->
+                <div class="data-loading">數據加載中...</div>
+            </div>
+            <div class="chart-container">
+                <canvas id="firebaseChart"></canvas>
             </div>
         </div>
 
-        <!-- 实时数据统计模块 -->
+        <!-- Formspree 数据模块 -->
         <div class="data-card">
-            <h2 class="card-title">實時數據統計</h2>
-            <div id="realTimeStats">
-                <p>訪問量：<span id="visitsCount">0</span></p>
-                <p>用戶註冊數：<span id="userRegistrationCount">0</span></p>
+            <h2 class="card-title">表單提交記錄（最近5筆）</h2>
+            <div id="formspreeData" class="data-list">
+                <div class="data-loading">正在獲取表單數據...</div>
             </div>
-        </div>
-
-        <!-- 待办事项列表模块 -->
-        <div class="data-card">
-            <h2 class="card-title">待辦事項列表</h2>
-            <div id="todoList" class="data-list">
-                <!-- 这里将显示待办事项 -->
-            </div>
-            <input type="text" id="newTodoInput" placeholder="新增待辦事項">
-            <button onclick="addTodo()">添加</button>
         </div>
     </div>
 
     <script>
-        // 初始化 Firebase
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyDP3SY__81TQwqJMB0gNmf6yMx1nyMXiaA",
+            authDomain: "cheungticity.firebaseapp.com",
+            projectId: "cheungticity",
+            storageBucket: "cheungticity.appspot.com",
+            messagingSenderId: "1030169122427",
+            appId: "1:1030169122427:web:41f88f835ba43a0c19b4de"
         };
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
 
-        // 获取用户信息
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                document.getElementById('userEmail').textContent = user.email;
-            } else {
-                window.location.href = 'login.html';
+        // 初始化Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth(app); // 使用正确的初始化方式
+        const db = firebase.firestore();
+
+        // 服务器监控增强功能
+        let latencyData = [];
+        const trafficChart = new Chart(document.getElementById('trafficChart'), {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: '网络延迟(ms)',
+                    data: [],
+                    borderColor: '#28a745',
+                    tension: 0.4
+                }]
             }
         });
 
-        // 退出登录函数
-        function logout() {
-            auth.signOut().then(() => {
-                window.location.href = 'login.html';
-            }).catch(error => {
-                console.error('退出登录时出错：', error);
-            });
-        }
+        async function checkServerStatus() {
+            try {
+                const start = Date.now();
+                const res = await fetch(`https://cn-cd-2.ioll.cc:10634/ping`, {
+                    mode: 'no-cors',
+                    cache: 'no-store'
+                });
+                const latency = Date.now() - start;
 
-        // 添加待办事项函数
-        function addTodo() {
-            const input = document.getElementById('newTodoInput');
-            const todoText = input.value.trim();
-            if (todoText) {
-                const todoList = document.getElementById('todoList');
-                const todoItem = document.createElement('div');
-                todoItem.className = 'todo-item';
-                todoItem.innerHTML = `
-                    <input type="checkbox">
-                    <span>${todoText}</span>
-                    <button onclick="removeTodo(this)">刪除</button>
-                `;
-                todoList.appendChild(todoItem);
-                input.value = '';
+                latencyData.push(latency);
+                if (latencyData.length > 15) latencyData.shift();
+
+                // 更新图表数据
+                trafficChart.data.labels = Array.from({ length: latencyData.length }, (_, i) => i + 1);
+                trafficChart.data.datasets[0].data = latencyData;
+                trafficChart.update();
+
+                // 更新服务器状态指示
+                const serverStatus = document.getElementById('serverStatus');
+                const serverLatency = document.getElementById('serverLatency');
+                if (res.ok) {
+                    serverStatus.classList.remove('offline');
+                    serverStatus.classList.add('online');
+                    serverLatency.textContent = `延遲：${latency}ms`;
+                } else {
+                    serverStatus.classList.remove('online');
+                    serverStatus.classList.add('offline');
+                    serverLatency.textContent = '延遲：無響應';
+                }
+            } catch (error) {
+                console.error('服务器状态检查失败:', error);
             }
         }
 
-        // 删除待办事项函数
-        function removeTodo(button) {
-            const todoItem = button.parentNode;
-            todoItem.parentNode.removeChild(todoItem);
-        }
+        // 定期检查服务器状态
+        setInterval(checkServerStatus, 5000);
     </script>
 </body>
 
