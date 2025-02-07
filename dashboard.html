@@ -7,7 +7,7 @@
     <title>管理中樞丨長堤城建</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;500;700&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script> <!-- 确保导入auth模块 -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -17,15 +17,13 @@
             --success: #28a745;
             --danger: #dc3545;
             --background: #f8f9fa;
-            --background-gradient: linear-gradient(135deg, #f8f9fa 0%, #e0e0e0 100%);
-            --transition-speed: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         body {
             font-family: 'Noto Sans TC', sans-serif;
             margin: 0;
             padding: 2rem;
-            background: var(--background-gradient);
+            background: var(--background);
         }
 
         .dashboard-container {
@@ -42,11 +40,6 @@
             padding: 1.5rem;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             min-height: 400px;
-            transition: box-shadow var(--transition-speed);
-        }
-
-        .data-card:hover {
-            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
         }
 
         .card-title {
@@ -65,11 +58,6 @@
             background: rgba(40, 167, 69, 0.1);
             border-radius: 8px;
             margin-bottom: 1.5rem;
-            transition: background-color var(--transition-speed);
-        }
-
-        .server-status:hover {
-            background: rgba(40, 167, 69, 0.2);
         }
 
         .status-indicator {
@@ -97,11 +85,6 @@
             padding: 1rem;
             background: rgba(108, 117, 125, 0.05);
             border-radius: 8px;
-            transition: background-color var(--transition-speed);
-        }
-
-        .data-item:hover {
-            background: rgba(108, 117, 125, 0.1);
         }
 
         .submission-meta {
@@ -124,10 +107,40 @@
             text-align: center;
             color: var(--metal);
         }
+
+        .iframe-container {
+            width: 100%;
+            height: 500px;
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .logout-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background: var(--metal);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .logout-button:hover {
+            background: #5a6268;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
     </style>
 </head>
 
 <body>
+    <button class="logout-button" id="logoutButton">退出登录</button>
     <div class="dashboard-container">
         <!-- 服务器状态模块 -->
         <div class="data-card">
@@ -157,79 +170,190 @@
 
         <!-- Formspree 数据模块 -->
         <div class="data-card">
-            <h2 class="card-title">表單提交記錄（最近5筆）</h2>
-            <div id="formspreeData" class="data-list">
-                <div class="data-loading">正在獲取表單數據...</div>
+            <h2 class="card-title">Formspree 表單提交記錄</h2>
+            <iframe class="iframe-container" src="https://formspree.io/forms/xqaelerk/submissions"></iframe>
+        </div>
+
+        <!-- 功能1：用户信息显示 -->
+        <div class="data-card">
+            <h2 class="card-title">用戶信息</h2>
+            <div id="userInfo">
+                <div class="data-loading">用戶信息加載中...</div>
+            </div>
+        </div>
+
+        <!-- 功能2：实时时间显示 -->
+        <div class="data-card">
+            <h2 class="card-title">實時時間</h2>
+            <div id="realTime">
+                <div class="data-loading">時間加載中...</div>
+            </div>
+        </div>
+
+        <!-- 功能3：服务器负载显示 -->
+        <div class="data-card">
+            <h2 class="card-title">伺服器負載</h2>
+            <div id="serverLoad">
+                <div class="data-loading">伺服器負載加載中...</div>
+            </div>
+        </div>
+
+        <!-- 功能4：待办事项列表 -->
+        <div class="data-card">
+            <h2 class="card-title">待辦事項列表</h2>
+            <div id="todoList">
+                <div class="data-loading">待辦事項加載中...</div>
+            </div>
+        </div>
+
+        <!-- 功能5：系统消息显示 -->
+        <div class="data-card">
+            <h2 class="card-title">系統消息</h2>
+            <div id="systemMessages">
+                <div class="data-loading">系統消息加載中...</div>
+            </div>
+        </div>
+
+        <!-- 功能6：数据统计图表 -->
+        <div class="data-card">
+            <h2 class="card-title">數據統計圖表</h2>
+            <div class="chart-container">
+                <canvas id="statisticsChart"></canvas>
+            </div>
+        </div>
+
+        <!-- 功能7：文件上传区域 -->
+        <div class="data-card">
+            <h2 class="card-title">文件上傳區域</h2>
+            <input type="file" id="fileUpload">
+            <div id="uploadStatus">
+                <div class="data-loading">等待文件上傳...</div>
+            </div>
+        </div>
+
+        <!-- 功能8：搜索功能 -->
+        <div class="data-card">
+            <h2 class="card-title">搜索功能</h2>
+            <input type="text" id="searchInput" placeholder="輸入關鍵字">
+            <div id="searchResults">
+                <div class="data-loading">等待搜索...</div>
             </div>
         </div>
     </div>
 
     <script>
+        // Firebase 配置
         const firebaseConfig = {
             apiKey: "AIzaSyDP3SY__81TQwqJMB0gNmf6yMx1nyMXiaA",
             authDomain: "cheungticity.firebaseapp.com",
+            databaseURL: "https://cheungticity-default-rtdb.asia-southeast1.firebasedatabase.app",
             projectId: "cheungticity",
-            storageBucket: "cheungticity.appspot.com",
+            storageBucket: "cheungticity.firebasestorage.app",
             messagingSenderId: "1030169122427",
-            appId: "1:1030169122427:web:41f88f835ba43a0c19b4de"
+            appId: "1:1030169122427:web:41f88f835ba43a0c19b4de",
+            measurementId: "G-JWTDBWJH58"
         };
 
-        // 初始化Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth(app); // 使用正确的初始化方式
-        const db = firebase.firestore();
+        // 初始化 Firebase
+        let app;
+        try {
+            app = firebase.initializeApp(firebaseConfig);
+            console.log('[Init] Firebase 初始化成功');
+        } catch (error) {
+            console.error('[Fatal] Firebase 初始化失败:', error);
+            alert('系統初始化失敗，請刷新頁面');
+            return;
+        }
 
-        // 服务器监控增强功能
-        let latencyData = [];
-        const trafficChart = new Chart(document.getElementById('trafficChart'), {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [{
-                    label: '网络延迟(ms)',
-                    data: [],
-                    borderColor: '#28a745',
-                    tension: 0.4
-                }]
+        // 获取 auth 实例
+        const auth = firebase.auth(app);
+
+        // 检查用户是否已登录
+        auth.onAuthStateChanged(user => {
+            if (!user) {
+                // 未登录，重定向到登录页面
+                window.location.href = 'login.html';
+            } else {
+                // 已登录，显示用户信息
+                document.getElementById('userInfo').innerHTML = `<p>用戶名：${user.displayName}</p><p>郵箱：${user.email}</p>`;
             }
         });
 
-        async function checkServerStatus() {
-            try {
-                const start = Date.now();
-                const res = await fetch(`https://cn-cd-2.ioll.cc:10634/ping`, {
-                    mode: 'no-cors',
-                    cache: 'no-store'
-                });
-                const latency = Date.now() - start;
+        // 退出登录按钮事件
+        document.getElementById('logoutButton').addEventListener('click', () => {
+            auth.signOut().then(() => {
+                // 退出登录成功，重定向到登录页面
+                window.location.href = 'login.html';
+            }).catch(error => {
+                console.error('退出登录失败:', error);
+                alert('退出登录失败，請稍後再試');
+            });
+        });
 
-                latencyData.push(latency);
-                if (latencyData.length > 15) latencyData.shift();
-
-                // 更新图表数据
-                trafficChart.data.labels = Array.from({ length: latencyData.length }, (_, i) => i + 1);
-                trafficChart.data.datasets[0].data = latencyData;
-                trafficChart.update();
-
-                // 更新服务器状态指示
-                const serverStatus = document.getElementById('serverStatus');
-                const serverLatency = document.getElementById('serverLatency');
-                if (res.ok) {
-                    serverStatus.classList.remove('offline');
-                    serverStatus.classList.add('online');
-                    serverLatency.textContent = `延遲：${latency}ms`;
-                } else {
-                    serverStatus.classList.remove('online');
-                    serverStatus.classList.add('offline');
-                    serverLatency.textContent = '延遲：無響應';
-                }
-            } catch (error) {
-                console.error('服务器状态检查失败:', error);
-            }
+        // 实时时间显示
+        function updateRealTime() {
+            const now = new Date();
+            document.getElementById('realTime').innerHTML = `<p>${now.toLocaleString()}</p>`;
         }
+        setInterval(updateRealTime, 1000);
 
-        // 定期检查服务器状态
-        setInterval(checkServerStatus, 5000);
+        // 服务器负载显示（模拟数据）
+        function updateServerLoad() {
+            const load = Math.random() * 100;
+            document.getElementById('serverLoad').innerHTML = `<p>伺服器負載：${load.toFixed(2)}%</p>`;
+        }
+        setInterval(updateServerLoad, 5000);
+
+        // 待办事项列表（模拟数据）
+        const todoList = ['任務1', '任務2', '任務3'];
+        document.getElementById('todoList').innerHTML = todoList.map(item => `<p>${item}</p>`).join('');
+
+        // 系统消息显示（模拟数据）
+        const systemMessages = ['消息1', '消息2', '消息3'];
+        document.getElementById('systemMessages').innerHTML = systemMessages.map(item => `<p>${item}</p>`).join('');
+
+        // 数据统计图表（模拟数据）
+        const ctx = document.getElementById('statisticsChart').getContext('2d');
+        const statisticsChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['數據1', '數據2', '數據3'],
+                datasets: [{
+                    label: '統計數據',
+                    data: [10, 20, 30],
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // 文件上传区域
+        document.getElementById('fileUpload').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('uploadStatus').innerHTML = `<p>文件 ${file.name} 已選中，待上傳...</p>`;
+                // 这里可以添加文件上传的逻辑
+            }
+        });
+
+        // 搜索功能（模拟数据）
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const keyword = e.target.value;
+            if (keyword) {
+                const results = ['結果1', '結果2', '結果3'].filter(item => item.includes(keyword));
+                document.getElementById('searchResults').innerHTML = results.map(item => `<p>${item}</p>`).join('');
+            } else {
+                document.getElementById('searchResults').innerHTML = '<div class="data-loading">等待搜索...</div>';
+            }
+        });
     </script>
 </body>
 
