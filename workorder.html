@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工单系统丨長堤城建</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;500;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/ionicons@5.5.2/dist/css/ionicons.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --platinum: #E5E4E2;
+            --silver: #C0C0C0;
+            --metal-accent: #6C757D;
+            --obsidian: #0A0A0A;
+            --success: #28a745;
+            --error: #dc3545;
+        }
+
+        body {
+            font-family: 'Noto+Sans TC', sans-serif;
+            background: #f8f9fa;
+            margin: 0;
+            padding-top: 80px;
+        }
+
+        /* 标题栏样式，和 index.html 一样 */
+        .nav-bar {
+            background: rgba(255, 255, 255, 0.88);
+            padding: 1.2rem 5%;
+            backdrop-filter: saturate(180%) blur(20px);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        .nav-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            color: var(--obsidian);
+            letter-spacing: 1.2px;
+            font-weight: 700;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: var(--metal-accent);
+            text-decoration: none;
+            position: relative;
+            padding: 0.5rem 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--metal-accent);
+            transition: width 0.3s ease;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        /* 工单表单容器 */
+        .workorder-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2.5rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .form-title {
+            font-size: 2rem;
+            color: var(--metal-accent);
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-label {
+            font-size: 1.1rem;
+            color: var(--metal-accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .input-field {
+            padding: 0.8rem;
+            border: 1px solid var(--silver);
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .form-actions {
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        .submit-btn {
+            padding: 0.8rem 2rem;
+            background: var(--metal-accent);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            background: var(--obsidian);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 标题栏，和 index.html 一样 -->
+    <nav class="nav-bar">
+        <div class="nav-content">
+            <div class="logo">長堤丨MCMTR</div>
+            <div class="nav-links">
+                <a href="/index.html" class="nav-link">首頁</a>
+                <a href="#about" class="nav-link">計劃簡介</a>
+                <a href="#stats" class="nav-link">實時數據</a>
+                <a href="/login.html" class="nav-link">登入系統</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 工单表单 -->
+    <div class="workorder-container">
+        <div class="form-header">
+            <h2 class="form-title">工单系统</h2>
+        </div>
+        <form id="workorder-form">
+            <div class="input-grid">
+                <div class="input-group">
+                    <label class="input-label">MC 用户名</label>
+                    <input type="text" class="input-field" id="mc-username" name="mc-username" required>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">电子邮件</label>
+                    <input type="email" class="input-field" id="email" name="email" required>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">QQ 号</label>
+                    <input type="text" class="input-field" id="qq-number" name="qq-number" required>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="submit-btn">提交工单</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const form = document.getElementById('workorder-form');
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch('https://formspree.io/f/xqaelerk', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('提交工单时出现错误，请稍后再试。');
+                }
+
+                const data = await response.json();
+                if (data.ok) {
+                    window.location.href = '/join-success.html';
+                } else {
+                    throw new Error(data.error || '提交工单失败，请检查您的输入。');
+                }
+            } catch (error) {
+                console.error('提交失败:', error);
+                alert(`提交失败：${error.message}`);
+            }
+        });
+    </script>
+</body>
+
+</html>
