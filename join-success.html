@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>加入成功丨長堤城建</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --platinum: #E5E4E2;
+            --silver: #C0C0C0;
+            --metal-accent: #6C757D;
+            --obsidian: #0A0A0A;
+            --success: #28a745;
+            --liquid-metal: rgba(192, 192, 192, 0.3);
+        }
+
+        body {
+            background: radial-gradient(circle at 50% 50%, var(--platinum) 0%, #d3d3d3 100%);
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Noto Sans TC', sans-serif;
+            perspective: 1000px;
+        }
+
+        .cyber-grid {
+            position: fixed;
+            width: 200vw;
+            height: 200vh;
+            background-image: linear-gradient(var(--metal-accent) 1px, transparent 1px), linear-gradient(90deg, var(--metal-accent) 1px, transparent 1px);
+            background-size: 40px 40px;
+            opacity: 0.15;
+            transform: rotateX(65deg) translateZ(-200px);
+            animation: gridFlow 40s linear infinite;
+        }
+
+        .success-container {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            padding: 3rem;
+        }
+
+        .hologram {
+            font-size: 12rem;
+            color: var(--success);
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.8), 0 0 20px rgba(192, 192, 192, 0.5);
+            margin-bottom: 2rem;
+            animation: hologramFlicker 2s infinite;
+        }
+
+        .success-message {
+            font-size: 1.8rem;
+            color: var(--metal-accent);
+            letter-spacing: 2px;
+            margin: 2rem 0;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .portal-button {
+            position: relative;
+            padding: 16px 45px;
+            background: var(--liquid-metal);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+            color: white;
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            overflow: hidden;
+        }
+
+        .portal-button::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(transparent 135deg, rgba(255, 255, 255, 0.8) 180deg, transparent 225deg);
+            animation: portalShine 3s linear infinite;
+        }
+
+        .portal-button:hover {
+            transform: scale(1.05) translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .portal-button span {
+            position: relative;
+            z-index: 2;
+        }
+
+        .countdown {
+            font-size: 2rem;
+            color: var(--metal-accent);
+            margin-top: 2rem;
+        }
+
+        @keyframes gridFlow {
+            0% {
+                transform: rotateX(65deg) translate(-10%, -10%);
+            }
+
+            100% {
+                transform: rotateX(65deg) translate(-30%, -30%);
+            }
+        }
+
+        @keyframes hologramFlicker {
+            0%,
+            100% {
+                opacity: 0.95;
+            }
+
+            50% {
+                opacity: 0.8;
+            }
+        }
+
+        @keyframes portalShine {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hologram {
+                font-size: 8rem;
+            }
+
+            .success-message {
+                font-size: 1.2rem;
+            }
+
+            .portal-button {
+                padding: 14px 35px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="cyber-grid"></div>
+    <div class="success-container">
+        <div class="hologram">🎉</div>
+        <div class="success-message">恭喜你，提交成功！</div>
+        <div class="success-message">我們將在48小時內郵件回復您。</div>
+        <div class="countdown">將在 <span id="countdown">10</span> 秒後自動跳轉至首頁...</div>
+        
+        <button class="portal-button" onclick="redirectNow()">立即跳轉</button>
+    </div>
+
+    <script>
+        let seconds = 10;
+        const countdownElement = document.getElementById('countdown');
+
+        function updateCountdown() {
+            countdownElement.textContent = seconds;
+            if (seconds > 0) {
+                seconds--;
+                setTimeout(updateCountdown, 1000);
+            } else {
+                window.location.href = 'index.html';
+            }
+        }
+
+        function redirectNow() {
+            window.location.href = 'index.html';
+        }
+
+        // 开始倒计时
+        updateCountdown();
+    </script>
+</body>
+
+</html>
